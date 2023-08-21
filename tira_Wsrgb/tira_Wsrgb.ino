@@ -1,13 +1,3 @@
-#include <Adafruit_NeoPixel.h>    // Incluimos la librería Adafruit NeoPixel. Esto se hace para poder ejecutar los comandos pertenecientes a esta librería necesarios para poder gobernar la tira led Neo Pixel.
-
-#define BUTTON_PIN   2    // Pin 2 conectado al botón. (Montaje pull-up).
-
-#define PIXEL_PIN    6    // Pin 6 conectado a la tira led. Digital IO pin connected to the NeoPixels.
-
-#define PIXEL_COUNT 35    // Número de leds (pixels) de la tira led Neo Pixel.
-
-#define Dig7Seg 1
-
 // Para el comando Adafruit_NeoPixel nos encontramos con las siguientes instrucciones, de la página de Adafruit:
 // Parameter 1 = number of pixels in strip
 // Parameter 2 = pin number (most are valid)
@@ -17,64 +7,74 @@
 //   NEO_KHZ400  400 KHz bitstream (e.g. FLORA pixels)
 //   NEO_KHZ800  800 KHz bitstream (e.g. High Density LED strip), correct for neopixel stick
 // Port tanto seleccionamos para el tercer parámetro las opciones NEO_GRB + NEOKHZ800 ya que son válidas para neopixel stick.
+#include <Adafruit_NeoPixel.h>    // Incluimos la librería Adafruit NeoPixel. Esto se hace para poder ejecutar los comandos pertenecientes a esta librería necesarios para poder gobernar la tira led Neo Pixel.
+
+#define PIXEL_PIN    6    // Pin 6 conectado a la tira led. Digital IO pin connected to the NeoPixels.
+
+#define PIXEL_COUNT_DG 5    // Número de leds (pixels) de la tira led por segmento.
+
+#define Dig7Seg 1         //numero de digitos conetados
+
+int PIXEL_COUNT = PIXEL_COUNT_DG * 7;  //numero de leds=  nsegmentos * lancatidad de digitos
+
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(PIXEL_COUNT, PIXEL_PIN, NEO_GRB + NEO_KHZ800);
+
 #define Rojo strip.Color(127,   0,   0)
 #define Blanco strip.Color(127, 127, 127)
 #define Azul strip.Color(0,0,127)
 #define Verde strip.Color(0, 255, 0)
 #define Off strip.Color(0, 0, 0)
 
-bool oldState = HIGH;    // definimos la variable de estado oldState de tipo booleana y la inicializamos a HIGH.
-int showType = 0;    // definimos la variable entera showType.
+
 
 void setup() {
-  pinMode(BUTTON_PIN, INPUT);    // Definimos el pin asociado a BUTTON_PIN como entrada.
+
   strip.begin();    // con begin inicializamos la tira led.
   strip.show(); // con show actualizamos toda la tira de una sola vez.
 }
 
 void loop() {
-   Barrido1A1(Rojo, 300);
-    delay(100);
-    Barrido1A1(Verde, 200);
-     delay(1100);
-     Barrido1A1(Azul, 100);
-     delay(150);
-     BarridoCompleto(Verde, 330);
-      delay(100);
-     BarridoCompleto(Rojo, 250);
-      delay(100);
-     BarridoCompleto(Azul, 50);
-      delay(100);
+  Barrido1A1(Rojo, 300);
+  delay(100);
+  Barrido1A1(Verde, 200);
+  delay(1100);
+  Barrido1A1(Azul, 100);
+  delay(150);
+  BarridoCompleto(Verde, 330);
+  delay(100);
+  BarridoCompleto(Rojo, 250);
+  delay(100);
+  BarridoCompleto(Azul, 50);
+  delay(100);
   OffSeg();
-  barridoSegmento(Azul);
- delay(100);
-  ValorAscii("0000110",Rojo);//1
+  BarridoSegmento(Azul,1000);
+  delay(100);
+  ValorAscii("0000110", Rojo); //1
   delay(1000);
   OffSeg();
-  ValorAscii("1011011",Verde);//2
+  ValorAscii("1011011", Verde); //2
   delay(1000);
   OffSeg();
-  ValorAscii("1001111",Azul);//3
+  ValorAscii("1001111", Azul); //3
   delay(1000);
   OffSeg();
-   ValorAscii("1100110",Rojo);//4
+  ValorAscii("1100110", Rojo); //4
   delay(1000);
-  ValorAscii("1100110",Rojo);//4
+  ValorAscii("1100110", Rojo); //4
   OffSeg();
-    ValorAscii("1101101",Rojo);//5
-  delay(1000);
-  OffSeg();
-    ValorAscii("1111101",Verde);//6
+  ValorAscii("1101101", Rojo); //5
   delay(1000);
   OffSeg();
-    ValorAscii("0000111",Azul);//7
+  ValorAscii("1111101", Verde); //6
   delay(1000);
   OffSeg();
-  ValorAscii("1111111",Rojo);//8
+  ValorAscii("0000111", Azul); //7
   delay(1000);
   OffSeg();
-  ValorAscii("1101111",Verde);//9
+  ValorAscii("1111111", Rojo); //8
+  delay(1000);
+  OffSeg();
+  ValorAscii("1101111", Verde); //9
   delay(1000);
   OffSeg();
 }
@@ -90,7 +90,8 @@ void BarridoCompleto(uint32_t c, uint8_t wait) {
     delay(wait);    // Esperamos un tiempo wait de una iteración a otra.
   }
 }
-void barridoSegmento(uint32_t c) {
+//barrido Segmento a segmento.. sensiende cada senmeto del color y la pausa entre segmentos, queda encendido
+void BarridoSegmento(uint32_t c,uint8_t wait) {
   int seg = 7;
   int LedSeg = 35 / 7;
   int DigOn = 0;
@@ -100,19 +101,11 @@ void barridoSegmento(uint32_t c) {
     }  // i es el pixel actual para cada iteración y c el color.
     strip.show();
     DigOn = DigOn + 5;
-    delay(1000);
+    delay(wait);
   }
-  DigOn = 0;
-  delay(1500);
-  for (int SegCtn = 0; SegCtn < seg; SegCtn++) {
-    for (int LedSegCtn = 0; LedSegCtn < LedSeg; LedSegCtn++) { // Bucle for recorre todos los pixels de la tira con la variable i.
-      strip.setPixelColor(LedSegCtn + DigOn, Off);
-    }  // i es el pixel actual para cada iteración y c el color.
-    strip.show();
-    DigOn = DigOn + 5;
-    delay(500);
-  }
+ 
 }
+//apaga toda la tira
 void OffSeg() {
   int seg = 7;
   int LedSeg = 35 / 7;
@@ -127,7 +120,7 @@ void OffSeg() {
     delay(1);
   }
 }
-void ValorAscii(String CadenaBinaria,uint32_t c)
+void ValorAscii(String CadenaBinaria, uint32_t c)
 {
   int seg = 7;
   int LedSeg = 35 / 7;
